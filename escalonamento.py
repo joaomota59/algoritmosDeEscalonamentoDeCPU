@@ -1,5 +1,6 @@
 from copy import deepcopy
 import numpy as np
+from random import randrange
 '''A entrada é composta por uma série de pares de números inteiros 
 separadas por um espaço em branco indicando o 
 instante de chegada do processo e a duração de cada processo.
@@ -36,10 +37,9 @@ def maxNaMatriz(matrix, coluna, vetFlags):#retorna o maior elemento da matriz re
 
 
 def prioridadeDinamica(passoApasso = False):#algoritmo de prioridade Dinâmica
-    timelineCounter = -1 
-    colunasHistorico = np.sum(matriz,0)[1] + 1
+    colunasHistorico = np.sum(matriz,0)[1] + 1 #soma a duracao total dos processos e mais 1 p fazer a timeline
     matrizHistorico = np.zeros((len(matriz),colunasHistorico), dtype=np.int)#matriz zerada que mostrara futuramente o timeline dos processos
-    filaPDinamica = deepcopy(matriz)#cria uma cópia da matriz original
+    filaPDinamica = deepcopy(matriz[matriz[:,0].argsort()])#cria uma cópia da matriz 
     if(passoApasso):
         print(filaPDinamica)
         print(matrizHistorico)
@@ -78,5 +78,40 @@ def prioridadeDinamica(passoApasso = False):#algoritmo de prioridade Dinâmica
     return matrizHistorico
         
 
-pD = prioridadeDinamica(False)
+def loteria(passoApasso = False):
+    colunasHistorico = np.sum(matriz,0)[1] + 1 #soma a duracao total dos processos e mais 1 p fazer a timeline
+    matrizHistorico = np.zeros((len(matriz),colunasHistorico), dtype=np.int)#matriz zerada que mostrara futuramente o timeline dos processos
+    matrixLoteria = deepcopy(matriz)#cria uma cópia da matriz original
+    if(passoApasso):
+        print(matrixLoteria)
+        print(matrizHistorico)
+        print()
 
+    
+    timelineCounter = 0
+    auxFlags = np.zeros(len(matrixLoteria), dtype = np.int) #auxilia para informar processos que serao desconsiderados quando ficarem com duração 0
+    while(timelineCounter < colunasHistorico - 1):
+        sorteiaProcesso = randrange(len(matrixLoteria)) #sorteia qual processo vai entrar em execução
+        chegada = matrixLoteria[sorteiaProcesso][0]
+        duracao = matrixLoteria[sorteiaProcesso][1]
+        if (duracao == 0):#se for um processo que já foi executado por completo entao sorteia novamente
+            continue
+        if(passoApasso):
+            print("Processo sorteado:",sorteiaProcesso)
+        if(duracao - 2 >= 0):
+            matrixLoteria[sorteiaProcesso][1] = duracao - 2
+            matrizHistorico[sorteiaProcesso][timelineCounter] = 1
+            matrizHistorico[sorteiaProcesso][timelineCounter+1] = 1
+            matrizHistorico[sorteiaProcesso][timelineCounter+2] = 1
+            timelineCounter+=2#um quantum corresponde a duas fatias de tempo
+        else:#se precisar somente da metade do quantum(uma fatia de tempo)
+            matrixLoteria[sorteiaProcesso][1] = duracao - 1
+            matrizHistorico[sorteiaProcesso][timelineCounter] = 1
+            matrizHistorico[sorteiaProcesso][timelineCounter+1] = 1
+            timelineCounter+=1#um quantum corresponde a duas fatias de tempo
+        if(passoApasso):
+            print(matrixLoteria)
+            print(matrizHistorico)
+            print()
+pD = prioridadeDinamica(False)
+l = loteria(False)
