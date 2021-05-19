@@ -168,7 +168,44 @@ def roundRobin(passoApasso = False):
             print(np.asarray(matrizAux))
             print(matrizHistorico)
             print()
+    return matrizHistorico
+
+def rindex(alist, value):#ultima ocorrerencia de um elemento no vetor
+    return len(alist) - alist[-1::-1].index(value) -1 #retorna  a posicao no vetor
+
+def tempoDeRetornoMedio(matrizHistorico):
+    somatorio = 0
+    for indice,processo in enumerate(matrizHistorico):
+        entrada = matriz[indice][0]#momento da chegada do processo
+        termino = rindex(list(processo),1)#momento em que o processo termina por completo
+        somatorio += termino - entrada
+    return somatorio/len(matrizHistorico)
+
+def tempoDeRespostaMedio(matrizHistorico):
+    somatorio = 0
+    for indice,processo in enumerate(matrizHistorico):
+        entrada = matriz[indice][0]#momento da chegada do processo
+        inicio = list(processo).index(1)#momento em que o processo inicia sua execução
+        somatorio += inicio - entrada
+    return somatorio/len(matrizHistorico)
+
+def tempoDeEsperaMedio(matrizHistorico):
+    somatorio = 0
+    for indice,processo in enumerate(matrizHistorico):
+        entrada = matriz[indice][0]#momento da chegada do processo
+
+        termino = rindex(list(processo),1)#momento em que o processo termina por completo
+        todasOcorrenciasDeTempo = sum([1 for element in processo if element == 1])
+        if (todasOcorrenciasDeTempo % 2 == 0):#se for par
+            somatorio += termino - entrada - int(todasOcorrenciasDeTempo/2)#retorna o tempo que o processo ficou ocioso
+        else:
+            somatorio += termino - entrada - int((todasOcorrenciasDeTempo+1)/2)
+            #print(termino - entrada - int((todasOcorrenciasDeTempo+1)/2))
+    return somatorio/len(matrizHistorico)
             
-pD = prioridadeDinamica(False)
+pD = prioridadeDinamica(True)
 l = loteria(False)
 rR = roundRobin(False)
+
+
+print(tempoDeEsperaMedio(pD))
