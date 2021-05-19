@@ -36,7 +36,7 @@ def maxNaMatriz(matrix, coluna, vetFlags):#retorna o maior elemento da matriz re
     return max(aux)
 
 
-def prioridadeDinamica(passoApasso = False):#algoritmo de prioridade Dinâmica
+def prioridadeDinamica(passoApasso = False):#algoritmo de prioridade Dinâmica, se passar True como parametro mostra passo a passo
     colunasHistorico = np.sum(matriz,0)[1] + 1 #soma a duracao total dos processos e mais 1 p fazer a timeline
     matrizHistorico = np.zeros((len(matriz),colunasHistorico), dtype=np.int)#matriz zerada que mostrara futuramente o timeline dos processos
     filaPDinamica = deepcopy(matriz[matriz[:,0].argsort()])#cria uma cópia da matriz 
@@ -89,16 +89,15 @@ def loteria(passoApasso = False):
 
     
     timelineCounter = 0
-    auxFlags = np.zeros(len(matrixLoteria), dtype = np.int) #auxilia para informar processos que serao desconsiderados quando ficarem com duração 0
     while(timelineCounter < colunasHistorico - 1):
         sorteiaProcesso = randrange(len(matrixLoteria)) #sorteia qual processo vai entrar em execução
-        chegada = matrixLoteria[sorteiaProcesso][0]
+        #chegada = matrixLoteria[sorteiaProcesso][0]
         duracao = matrixLoteria[sorteiaProcesso][1]
         if (duracao == 0):#se for um processo que já foi executado por completo entao sorteia novamente
             continue
         if(passoApasso):
             print("Processo sorteado:",sorteiaProcesso)
-        if(duracao - 2 >= 0):
+        if(duracao - 2 >= 0):#se o processo gastar um quantum inteiro
             matrixLoteria[sorteiaProcesso][1] = duracao - 2
             matrizHistorico[sorteiaProcesso][timelineCounter] = 1
             matrizHistorico[sorteiaProcesso][timelineCounter+1] = 1
@@ -113,5 +112,63 @@ def loteria(passoApasso = False):
             print(matrixLoteria)
             print(matrizHistorico)
             print()
+    return matrizHistorico
+
+
+def roundRobin(passoApasso = False):
+    colunasHistorico = np.sum(matriz,0)[1] + 1 #soma a duracao total dos processos e + 1 p fazer a timeline
+    matrizHistorico = np.zeros((len(matriz),colunasHistorico), dtype=np.int)#matriz zerada que mostrara futuramente o timeline dos processos
+    matrixRR = deepcopy(matriz).tolist() #cria uma cópia da matriz original
+    matrizAux = []#fila ciclica
+    timelineCounter = 0
+    for indice,linha in enumerate(matrixRR):#cria uma referencia para cada processo.. ex: P0, P1 , P2 ,P3
+        linha[2] = indice
+    for i in matrixRR:#observa quais processos podem entrar no estado pronto no instante 0
+        if(i[0] <= timelineCounter):#se a chegada for menor/igual dq o timeline entao o processo está em estado pronto e entao pode entrar na fila
+            matrizAux.append(i)
+    for indice,linha in enumerate(matrizAux):#deleta os elementos adicionados na matrizAux da matrixRR
+        try:
+            del(matrixRR[matrixRR.index(linha)])
+        except:#se n der certo deletar é pq n teve processos no arquivo texto no instante 0
+            break
+    if(passoApasso):
+        #print("Cada linha da matriz: [Momento de Chegada, Duração do Processo, ID do processo]\n\n")
+        print(np.asarray(matrizAux))
+        print(matrizHistorico)
+        print()
+    while(timelineCounter < colunasHistorico - 1):
+        duracao = matrizAux[0][1]#duracao do primeiro processo da fila
+        if(duracao - 2 >= 0):#se o processo gastar um quantum inteiro(duas fatias de tempo)
+            matrizAux[0][1] = duracao - 2 #reduz a duração do processo
+            numeroDoProcesso = matrizAux[0][2]#Referência do processo
+            matrizHistorico[numeroDoProcesso][timelineCounter] = 1
+            matrizHistorico[numeroDoProcesso][timelineCounter+1] = 1
+            matrizHistorico[numeroDoProcesso][timelineCounter+2] = 1
+            timelineCounter+=2#um quantum corresponde a duas fatias de tempo
+        else:#se o processo gastar só a metade do quantum
+            matrizAux[0][1] = duracao - 1
+            numeroDoProcesso = matrizAux[0][2]
+            matrizHistorico[numeroDoProcesso][timelineCounter] = 1
+            matrizHistorico[numeroDoProcesso][timelineCounter+1] = 1
+            timelineCounter+=1#metade de um quantum(uma fatia de tempo)
+
+        contAux = 0 #conta quantos elementos foram adicionados a fila
+        for i in matrixRR:#observa quais processos podem entrar no estado pronto
+            if(i[0] <= timelineCounter):#se a chegada for menor/igual dq o timeline entao o processo está em estado pronto e entao pode entrar na fila
+                matrizAux.append(i)
+                contAux+=1        
+        for quant in range(contAux):#deleta os elementos adicionados na matrizAux da matrixRR
+            del(matrixRR[0])
+        if(matrizAux[0][1] == 0):#se o processo tiver ficar com a duração igual a zero entao é retirado da fila
+            del(matrizAux[0])
+        else:
+            matrizAux.append(matrizAux[0])#joga o processo do começo da fila para o final da fila
+            del(matrizAux[0])#deleta o processo que foi para o final da fila do começo do vetor
+        if(passoApasso):
+            print(np.asarray(matrizAux))
+            print(matrizHistorico)
+            print()
+            
 pD = prioridadeDinamica(False)
 l = loteria(False)
+rR = roundRobin(False)
