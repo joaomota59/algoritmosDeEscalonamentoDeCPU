@@ -39,7 +39,10 @@ def maxNaMatriz(matrix, coluna, vetFlags):#retorna o maior elemento da matriz re
 def prioridadeDinamica(passoApasso = False):#algoritmo de prioridade Dinâmica, se passar True como parametro mostra passo a passo
     colunasHistorico = np.sum(matriz,0)[1] + 1 #soma a duracao total dos processos e mais 1 p fazer a timeline
     matrizHistorico = np.zeros((len(matriz),colunasHistorico), dtype=np.int)#matriz zerada que mostrara futuramente o timeline dos processos
-    filaPDinamica = deepcopy(matriz[matriz[:,0].argsort()])#cria uma cópia da matriz 
+
+    filaPDinamica = deepcopy(matriz[matriz[:,0].argsort()])#cria uma cópia da matriz
+
+    matrizHistoricoAux = (np.zeros((len(filaPDinamica),1),dtype=np.int)).tolist()#vai armazenar as tuplas do timeline
     if(passoApasso):
         print(filaPDinamica)
         print(matrizHistorico)
@@ -61,6 +64,8 @@ def prioridadeDinamica(passoApasso = False):#algoritmo de prioridade Dinâmica, 
                     filaPDinamica[processo][2] = prioridade - 1
                 else:#se o processo ficar com duração zero será desconsiderado na proxima vez
                     auxFlags[processo] = 1
+
+                matrizHistoricoAux[processo].append((timelineCounter,timelineCounter+1))
                 filaPDinamica[processo][1] = duracao - 1
                 matrizHistorico[processo][timelineCounter+1] = 1
                 matrizHistorico[processo][timelineCounter] = 1
@@ -75,31 +80,34 @@ def prioridadeDinamica(passoApasso = False):#algoritmo de prioridade Dinâmica, 
             print(filaPDinamica)
             print(matrizHistorico)
             print()
-    return matrizHistorico
+    return matrizHistorico, matrizHistoricoAux
         
 
 def loteria(passoApasso = False):
     colunasHistorico = np.sum(matriz,0)[1] + 1 #soma a duracao total dos processos e mais 1 p fazer a timeline
     matrizHistorico = np.zeros((len(matriz),colunasHistorico), dtype=np.int)#matriz zerada que mostrara futuramente o timeline dos processos
     matrixLoteria = deepcopy(matriz)#cria uma cópia da matriz original
+    matrizHistoricoAux = (np.zeros((len(matrixLoteria),1),dtype=np.int)).tolist()#vai armazenar as tuplas do timeline
     if(passoApasso):
         print(matrixLoteria)
         print(matrizHistorico)
         print()
-
-    
     timelineCounter = 0
     while(timelineCounter < colunasHistorico - 1):
         sorteiaProcesso = randrange(len(matrixLoteria)) #sorteia qual processo vai entrar em execução
-        #chegada = matrixLoteria[sorteiaProcesso][0]
+        chegada = matrixLoteria[sorteiaProcesso][0]
         duracao = matrixLoteria[sorteiaProcesso][1]
-        if (duracao == 0):#se for um processo que já foi executado por completo entao sorteia novamente
+        if (duracao == 0 or chegada>timelineCounter):#se for um processo que já foi executado por completo ou se for um processo que nao esteja no estado pronto, sorteia novamente
             continue
         if(passoApasso):
             print("Processo sorteado:",sorteiaProcesso)
         if(duracao - 2 >= 0):#se o processo gastar um quantum inteiro
             matrixLoteria[sorteiaProcesso][1] = duracao - 2
             matrizHistorico[sorteiaProcesso][timelineCounter] = 1
+
+            matrizHistoricoAux[sorteiaProcesso].append((timelineCounter,timelineCounter+1))
+            matrizHistoricoAux[sorteiaProcesso].append((timelineCounter+1,timelineCounter+2))
+            
             matrizHistorico[sorteiaProcesso][timelineCounter+1] = 1
             matrizHistorico[sorteiaProcesso][timelineCounter+2] = 1
             timelineCounter+=2#um quantum corresponde a duas fatias de tempo
@@ -107,18 +115,22 @@ def loteria(passoApasso = False):
             matrixLoteria[sorteiaProcesso][1] = duracao - 1
             matrizHistorico[sorteiaProcesso][timelineCounter] = 1
             matrizHistorico[sorteiaProcesso][timelineCounter+1] = 1
+
+            matrizHistoricoAux[sorteiaProcesso].append((timelineCounter,timelineCounter+1))
+            
             timelineCounter+=1#um quantum corresponde a duas fatias de tempo
         if(passoApasso):
             print(matrixLoteria)
             print(matrizHistorico)
             print()
-    return matrizHistorico
+    return matrizHistorico, matrizHistoricoAux
 
 
 def roundRobin(passoApasso = False):
     colunasHistorico = np.sum(matriz,0)[1] + 1 #soma a duracao total dos processos e + 1 p fazer a timeline
     matrizHistorico = np.zeros((len(matriz),colunasHistorico), dtype=np.int)#matriz zerada que mostrara futuramente o timeline dos processos
     matrixRR = deepcopy(matriz).tolist() #cria uma cópia da matriz original
+    matrizHistoricoAux = (np.zeros((len(matrixRR),1),dtype=np.int)).tolist()#vai armazenar as tuplas do timeline
     matrizAux = []#fila ciclica
     timelineCounter = 0
     for indice,linha in enumerate(matrixRR):#cria uma referencia para cada processo.. ex: P0, P1 , P2 ,P3
@@ -141,6 +153,10 @@ def roundRobin(passoApasso = False):
         if(duracao - 2 >= 0):#se o processo gastar um quantum inteiro(duas fatias de tempo)
             matrizAux[0][1] = duracao - 2 #reduz a duração do processo
             numeroDoProcesso = matrizAux[0][2]#Referência do processo
+
+            matrizHistoricoAux[numeroDoProcesso].append((timelineCounter,timelineCounter+1))
+            matrizHistoricoAux[numeroDoProcesso].append((timelineCounter+1,timelineCounter+2))
+            
             matrizHistorico[numeroDoProcesso][timelineCounter] = 1
             matrizHistorico[numeroDoProcesso][timelineCounter+1] = 1
             matrizHistorico[numeroDoProcesso][timelineCounter+2] = 1
@@ -148,6 +164,9 @@ def roundRobin(passoApasso = False):
         else:#se o processo gastar só a metade do quantum
             matrizAux[0][1] = duracao - 1
             numeroDoProcesso = matrizAux[0][2]
+
+            matrizHistoricoAux[numeroDoProcesso].append((timelineCounter,timelineCounter+1))
+            
             matrizHistorico[numeroDoProcesso][timelineCounter] = 1
             matrizHistorico[numeroDoProcesso][timelineCounter+1] = 1
             timelineCounter+=1#metade de um quantum(uma fatia de tempo)
@@ -168,10 +187,35 @@ def roundRobin(passoApasso = False):
             print(np.asarray(matrizAux))
             print(matrizHistorico)
             print()
-    return matrizHistorico
+            
+    return matrizHistorico,matrizHistoricoAux
+
 
 def rindex(alist, value):#ultima ocorrerencia de um elemento no vetor
     return len(alist) - alist[-1::-1].index(value) -1 #retorna  a posicao no vetor
+
+
+def multiplicaArray(array,matrixHistorico):#multiplica o array por cada elemento da matrix exceto ele proprio
+    somaOcorrencias = 0
+    for lista in matrixHistorico:
+       if list(array) != list(lista):#se nao for o proprio array
+           aux = list(np.multiply(list(array),list(lista)))#multiplica linha x linha
+           primeiroIndiceDoArray = list(array).index(1)#quando o processo começa
+           ultimoIndiceDoArray = rindex(list(array),1)#quando o processo termina
+           if lista[primeiroIndiceDoArray] == 1:
+               aux[primeiroIndiceDoArray] = 0
+           if lista[ultimoIndiceDoArray] == 1:
+               aux[ultimoIndiceDoArray] = 0
+           somaOcorrencias+=sum(aux)
+    return somaOcorrencias/2
+
+def somamultiplicaArray(matrixHistorico):#conta todas interseções entre o histico dos processos
+    soma = 0
+    for indice,i in enumerate(matrixHistorico):
+        soma += multiplicaArray(i,matrixHistorico[indice:])
+    return soma
+           
+        
 
 def tempoDeRetornoMedio(matrizHistorico):
     somatorio = 0
@@ -179,7 +223,7 @@ def tempoDeRetornoMedio(matrizHistorico):
         entrada = matriz[indice][0]#momento da chegada do processo
         termino = rindex(list(processo),1)#momento em que o processo termina por completo
         somatorio += termino - entrada
-    return somatorio/len(matrizHistorico)
+    return ("%.2f"%(float(somatorio/len(matrizHistorico))))
 
 def tempoDeRespostaMedio(matrizHistorico):
     somatorio = 0
@@ -187,25 +231,24 @@ def tempoDeRespostaMedio(matrizHistorico):
         entrada = matriz[indice][0]#momento da chegada do processo
         inicio = list(processo).index(1)#momento em que o processo inicia sua execução
         somatorio += inicio - entrada
-    return somatorio/len(matrizHistorico)
+    return ("%.2f"%(float(somatorio/len(matrizHistorico))))
 
-def tempoDeEsperaMedio(matrizHistorico):
+def tempoDeEsperaMedio(matrizHistorico,matrizHistoricoAux):
     somatorio = 0
     for indice,processo in enumerate(matrizHistorico):
+        quantDeExecucoes = len(matrizHistoricoAux[indice]) - 1 #-1 pois o que inicial que foi adicionado nao conta
         entrada = matriz[indice][0]#momento da chegada do processo
-
         termino = rindex(list(processo),1)#momento em que o processo termina por completo
-        todasOcorrenciasDeTempo = sum([1 for element in processo if element == 1])
-        if (todasOcorrenciasDeTempo % 2 == 0):#se for par
-            somatorio += termino - entrada - int(todasOcorrenciasDeTempo/2)#retorna o tempo que o processo ficou ocioso
-        else:
-            somatorio += termino - entrada - int((todasOcorrenciasDeTempo+1)/2)
-            #print(termino - entrada - int((todasOcorrenciasDeTempo+1)/2))
-    return somatorio/len(matrizHistorico)
+        somatorio += termino - entrada - quantDeExecucoes #retorna o tempo que o processo estava no estado pronto porem nao estava em execucao
+    return ("%.2f"%(float(somatorio/len(matrizHistorico))))
+
             
-pD = prioridadeDinamica(True)
+pD = prioridadeDinamica(False)
 l = loteria(False)
 rR = roundRobin(False)
 
+print("PRI "+tempoDeRetornoMedio(pD[0])+" "+tempoDeRespostaMedio(pD[0])+" "+tempoDeEsperaMedio(pD[0],pD[1]))
+print("LOT "+tempoDeRetornoMedio(l[0])+" "+tempoDeRespostaMedio(l[0])+" "+tempoDeEsperaMedio(l[0],l[1]))
+print("RR "+tempoDeRetornoMedio(rR[0])+" "+tempoDeRespostaMedio(rR[0])+" "+tempoDeEsperaMedio(rR[0],rR[1]))
 
-print(tempoDeEsperaMedio(pD))
+###Criar outra matrizHistorico em cada um!! -> <-
