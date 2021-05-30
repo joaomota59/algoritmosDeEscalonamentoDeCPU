@@ -1,13 +1,19 @@
 from copy import deepcopy
 import numpy as np
 from random import randrange
+import sys
 '''A entrada é composta por uma série de pares de números inteiros 
 separadas por um espaço em branco indicando o 
 instante de chegada do processo e a duração de cada processo.
 
 '''
 
-arquivo = open('entrada.txt','r')#abre o arquivo
+entrada = sys.argv[1]
+try:
+    arquivo = open(entrada,'r')#abre o arquivo
+except:
+    print("Arquivo não encontrado!")
+    exit(0)
 
 linhas = arquivo.readlines()#le as linhas do arquivo e coloca na variavel linha
 
