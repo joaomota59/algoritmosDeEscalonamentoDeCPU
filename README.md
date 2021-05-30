@@ -1,7 +1,12 @@
 # Algoritmos de Escalonamento de CPU
-* Para executar bastar rodar o aquivo escalonamento.py
 
-# Informações
+
+## Execução
+```shell
+python3 escalonamento.py entrada.txt
+```
+
+## Informações
 * Tempo de retorno médio – Refere-se ao tempo transcorrido entre o momento da entrada do processo no sistema e o seu término.
 * Tempo de resposta médio – Intervalo de tempo entre a chegada do processo e o início de sua execução.
 * Tempo de espera médio – Soma dos períodos em que um processo estava no seu estado pronto.
